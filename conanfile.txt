@@ -1,0 +1,15 @@
+[generators]
+cmake
+
+[requires]
+boost_asio/1.66.0@bincrafters/stable
+
+
+[options]
+boost:shared=True
+sfml:window=True
+sfml:graphics=True
+sfml:audio=True
+sfml:network=False
+
+[imports]
