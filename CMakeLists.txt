@@ -11,14 +11,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g3")
 set(CMAKE_BUILD_TYPE Release)
 
 include_directories(
-	include
         ${CMAKE_CURRENT_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+add_subdirectory(lib/ZiaModuleAPISpec)
 
 set(FILES
   src/main.cpp
 )
 
 add_executable(zia ${FILES})
-target_link_libraries(zia CONAN_PKG::boost_asio)
+target_link_libraries(zia CONAN_PKG::boost_asio ZiaModuleAPISpec)
