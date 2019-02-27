@@ -1,6 +1,4 @@
 #include <iostream>
-#include "Zia/API.hpp"
-#include "ServerConfig.h"
 #include "Server.h"
 
 int main(int ac, char *args[]) {

@@ -3,6 +3,7 @@
 #include <boost/asio.hpp>
 #include <string>
 #include <stdio.h>
+#include "Zia/API.hpp"
 
 namespace print_util {
     namespace {
@@ -30,3 +31,4 @@ namespace print_util {
 
 using namespace boost;
 using namespace print_util;
+using namespace Zia::API;
