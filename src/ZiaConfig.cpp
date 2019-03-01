@@ -41,6 +41,7 @@ void ZiaConfig::loadProperties() {
     if (data.find("modulesPath") != data.end())
         _modulesPath = data["modulesPath"];
 
+    //TODO: modulesProperties nested objects / make it recursive
     json modulesProperties = data["modulesProperties"];
     for (json::iterator it = modulesProperties.begin(); it != modulesProperties.end(); ++it) {
         std::string value;

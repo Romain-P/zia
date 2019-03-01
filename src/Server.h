@@ -7,6 +7,9 @@
 
 #include "zia.h"
 #include "ZiaConfig.h"
+#include "Session.h"
+#include <boost/thread.hpp>
+#include <unordered_map>
 
 class Server {
 public:
@@ -18,10 +21,27 @@ public:
     bool reloadConfig();
     void updateSharedConfig();
 
-private:
-    Server() = default;
+    void start();
+    void restart();
+    void stop();
+
+    void startNetwork();
+    boost::thread &thread();
 
 private:
+    Server() : _sessionCounter(0) {}
+
+private: /** Network **/
+    sizet _sessionCounter;
+    uptr<boost_io> _io;
+    uptr<tcp::acceptor> _acceptor;
+    std::unordered_map<session_id, ptr<Session>> _sessions;
+    boost::thread _thread;
+
+    void asyncAccept();
+    void onAccept(ptr<Session> session, const error_code &error);
+
+private: /** Core **/
     ZiaConfig _config;
     ServerConfig _sharedConfig;
     Connection _connectionInfos;
