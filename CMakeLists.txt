@@ -22,7 +22,8 @@ set(FILES
         src/ZiaConfig.cpp src/ZiaConfig.h
         src/Server.cpp src/Server.h
         src/Session.cpp src/Session.h
-        src/Console.cpp src/Console.h src/RequestParser.cpp src/RequestParser.h)
+        src/Console.cpp src/Console.h
+        src/Parser.cpp src/Parser.h)
 
 add_executable(zia ${FILES})
 target_link_libraries(zia CONAN_PKG::boost_asio CONAN_PKG::jsonformoderncpp ZiaModuleAPISpec)
