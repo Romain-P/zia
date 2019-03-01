@@ -15,6 +15,7 @@ const std::unordered_map<std::string, bool(Console::*)(std::vector<std::string>)
         { "restart", &Console::onRestart },
         { "load", &Console::onLoad },
         { "unload", &Console::onUnload },
+        { "loadall", &Console::onLoadAll },
         { "unloadall", &Console::onUnloadAll },
         { "help", &Console::onHelp }
 };
@@ -35,8 +36,8 @@ void Console::awaitCommands() {
 
 bool Console::onExit(std::vector<std::string>) {
     info("exit request");
-    if (server.thread().joinable()) {
-        server.stop();
+    if (server.network().thread().joinable()) {
+        server.network().stop();
     }
 
     //TODO: unload modules
@@ -51,23 +52,23 @@ bool Console::onConfig(std::vector<std::string>) {
 }
 
 bool Console::onStart(std::vector<std::string>) {
-    if (server.thread().joinable())
+    if (server.network().thread().joinable())
         errors("tcp server already started");
     else
-        server.start();
+        server.network().start();
     return false;
 }
 
 bool Console::onStop(std::vector<std::string>) {
-    if (!server.thread().joinable())
+    if (!server.network().thread().joinable())
         errors("tcp server already stopped");
     else
-        server.stop();
+        server.network().stop();
     return false;
 }
 
 bool Console::onRestart(std::vector<std::string>) {
-    server.restart();
+    server.network().restart();
     info("server restarted");
     return false;
 }
@@ -90,19 +91,26 @@ bool Console::onUnload(std::vector<std::string> args) {
     return false;
 }
 
+bool Console::onLoadAll(std::vector<std::string>) {
+
+    //TODO
+    return false;
+}
+
 bool Console::onUnloadAll(std::vector<std::string>) {
     //TODO
     return false;
 }
 
 bool Console::onHelp(std::vector<std::string>) {
-    pureinfo("[console]: command list\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n",
+    pureinfo("[console]: command list\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n",
             "config         ", "reloads the configuration file",
             "start          ", "starts the tcp server",
             "stop           ", "stops the tcp server",
             "restart        ", "restarts the tcp server",
             "load [module]  ", "loads a module",
             "unload [module]", "unloads a module",
+            "loadall        ", "loads all modules",
             "unloadall      ", "unloads all modules",
             "exit           ", "exits this program");
     return false;

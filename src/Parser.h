@@ -7,7 +7,9 @@
 
 
 class Parser {
+public:
 
+private:
 };
 
 

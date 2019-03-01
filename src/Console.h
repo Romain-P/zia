@@ -23,6 +23,7 @@ private:
     bool onRestart(std::vector<std::string>);
     bool onLoad(std::vector<std::string>);
     bool onUnload(std::vector<std::string>);
+    bool onLoadAll(std::vector<std::string>);
     bool onUnloadAll(std::vector<std::string>);
     bool onHelp(std::vector<std::string>);
 };
