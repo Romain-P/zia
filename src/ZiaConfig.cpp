@@ -41,6 +41,9 @@ void ZiaConfig::loadProperties() {
     if (data.find("modulesPath") != data.end())
         _modulesPath = data["modulesPath"];
 
+    if (data.find("poolSize") != data.end())
+        _poolSize = data["poolSize"];
+
     //TODO: modulesProperties nested objects / make it recursive
     json modulesProperties = data["modulesProperties"];
     for (json::iterator it = modulesProperties.begin(); it != modulesProperties.end(); ++it) {
@@ -111,4 +114,8 @@ std::string const &ZiaConfig::serverVersion() const {
 
 std::unordered_map<std::string, std::string> const &ZiaConfig::modulesProperties() const {
     return _modulesProperties;
+}
+
+uint16_t ZiaConfig::poolSize() const {
+    return _poolSize;
 }

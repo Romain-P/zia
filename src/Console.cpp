@@ -96,14 +96,14 @@ bool Console::onUnloadAll(std::vector<std::string>) {
 }
 
 bool Console::onHelp(std::vector<std::string>) {
-    pureinfo("[console]: command list\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n  %s:\t\t\t%s\n",
-            "config", "reloads the configuration file",
-            "start", "starts the tcp server",
-            "stop", "stops the tcp server",
-            "restart", "restarts the tcp server",
-            "load [module]", "loads a module",
+    pureinfo("[console]: command list\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n",
+            "config         ", "reloads the configuration file",
+            "start          ", "starts the tcp server",
+            "stop           ", "stops the tcp server",
+            "restart        ", "restarts the tcp server",
+            "load [module]  ", "loads a module",
             "unload [module]", "unloads a module",
-            "unloadall", "unloads all modules",
-            "exit", "exits this program");
+            "unloadall      ", "unloads all modules",
+            "exit           ", "exits this program");
     return false;
 }

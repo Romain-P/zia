@@ -10,6 +10,8 @@
 #include "Session.h"
 #include <boost/thread.hpp>
 #include <unordered_map>
+#include <boost/asio/thread_pool.hpp>
+#include <boost/asio/post.hpp>
 
 class Server {
 public:
@@ -20,6 +22,7 @@ public:
     Connection const &connectionInfos() const;
     bool reloadConfig();
     void updateSharedConfig();
+    void submit(std::function<void()> task);
 
     void start();
     void restart();
@@ -37,6 +40,7 @@ private: /** Network **/
     uptr<tcp::acceptor> _acceptor;
     std::unordered_map<session_id, ptr<Session>> _sessions;
     boost::thread _thread;
+    uptr<boost::asio::thread_pool> _worker;
 
     void asyncAccept();
     void onAccept(ptr<Session> session, const error_code &error);

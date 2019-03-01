@@ -11,7 +11,7 @@
 
 class Session : public boost::enable_shared_from_this<Session> {
 public:
-    Session(sizet id, boost_io &io) : _id(id), _socket(io) {};
+    Session(sizet id, boost_io &io) : _id(id), _socket(io), _readBuffer() {};
 
     void asyncAwaitPacket();
     void send(uint8_t *bytes, sizet length);

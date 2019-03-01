@@ -20,8 +20,9 @@ bool Server::reloadConfig() {
 
     //TODO: hook onConfigChange
 
-    info("server properties\tserverName: %s, serverVersion: %s, address: %s, port: %d, modulesPath: %s",
-            _config.serverName().c_str(), _config.serverVersion().c_str(), _config.address().c_str(), _config.port(), _config.modulesPath().c_str());
+    info("server properties\tserverName: %s, serverVersion: %s, address: %s, port: %d, poolSize: %d, modulesPath: %s",
+            _config.serverName().c_str(), _config.serverVersion().c_str(), _config.address().c_str(),
+            _config.port(), _config.poolSize(), _config.modulesPath().c_str());
 
     std::string properties;
     bool first = true;
@@ -65,6 +66,7 @@ void Server::start() {
 
 void Server::startNetwork() {
     boost::asio::socket_base::reuse_address option(true);
+    _worker = std::make_unique<boost::asio::thread_pool>(_config.poolSize());
     _io = std::make_unique<boost_io>();
 
     try {
@@ -89,6 +91,7 @@ void Server::restart() {
 }
 
 void Server::stop() {
+    _worker->stop();
     _io->stop();
     for (auto &it: _sessions) {
         tcp::socket &socket = it.second->socket();
@@ -122,6 +125,10 @@ void Server::onAccept(ptr<Session> session, const error_code &error) {
 
 boost::thread &Server::thread() {
     return _thread;
+}
+
+void Server::submit(std::function<void()> task) {
+    boost::asio::post(*_worker.get(), task);
 }
 
 

@@ -1,0 +1,12 @@
+{
+    "serverName": "MyHttpServer",
+    "serverVersion": "1.1",
+    "address": "127.0.0.1",
+    "port": 8080,
+    "poolSize": 10,
+    "modulesPath": "modules",
+    "modulesProperties": {
+        "logLevel": "debug",
+        "secureType": "ssl"
+    }
+}
