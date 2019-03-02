@@ -12,6 +12,7 @@ Server &Server::instance() {
 
 void Server::start() {
     reloadConfig();
+    _modules.loadAll();
     _network.start();
 }
 
@@ -67,5 +68,9 @@ void Server::submit(std::function<void()> task) {
 
 Network &Server::network() {
     return _network;
+}
+
+Modules &Server::modules() {
+    return _modules;
 }
 

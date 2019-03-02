@@ -23,7 +23,7 @@ set(FILES
         src/Server.cpp src/Server.h
         src/Session.cpp src/Session.h
         src/Console.cpp src/Console.h
-        src/Parser.cpp src/Parser.h src/Network.cpp src/Network.h)
+        src/Parser.cpp src/Parser.h src/Network.cpp src/Network.h src/Modules.cpp src/Modules.h)
 
 add_executable(zia ${FILES})
-target_link_libraries(zia CONAN_PKG::boost_asio CONAN_PKG::jsonformoderncpp ZiaModuleAPISpec)
+target_link_libraries(zia ${CMAKE_DL_LIBS} CONAN_PKG::boost_asio CONAN_PKG::jsonformoderncpp ZiaModuleAPISpec)

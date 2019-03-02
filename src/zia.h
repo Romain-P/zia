@@ -65,8 +65,20 @@ namespace string_util {
     }
 }
 
+namespace file_util {
+    inline char separator()
+    {
+#ifdef _WIN32
+        return '\\';
+#else
+        return '/';
+#endif
+    }
+}
+
 using namespace boost;
 using namespace print_util;
+using namespace string_util;
 using namespace Zia::API;
 
 

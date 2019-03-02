@@ -9,6 +9,7 @@
 #include "ZiaConfig.h"
 #include "Session.h"
 #include "Network.h"
+#include "Modules.h"
 #include <boost/thread.hpp>
 
 class Server {
@@ -24,6 +25,7 @@ public:
     ServerConfig const &sharedConfig() const;
     Connection const &connectionInfos() const;
     Network &network();
+    Modules &modules();
 
 private:
     Server() = default;
@@ -33,6 +35,7 @@ private:
     ServerConfig _sharedConfig;
     Connection _connectionInfos;
     Network _network;
+    Modules _modules;
 };
 
 #define server Server::instance()

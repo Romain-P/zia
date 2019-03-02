@@ -5,6 +5,9 @@
     "port": 8080,
     "poolSize": 10,
     "modulesPath": "modules",
+    "modules": {
+        "zia-log.so": 1
+    },
     "modulesProperties": {
         "logLevel": "debug",
         "secureType": "ssl"

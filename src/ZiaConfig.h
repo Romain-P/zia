@@ -7,9 +7,14 @@
 
 #include "zia.h"
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 
 class ZiaConfig {
 public:
+    using json = nlohmann::json;
+    using module_path = std::string;
+    using module_priority = ssizet;
+
     explicit ZiaConfig(std::string const &configPath = "config.json");
 
     bool load();
@@ -22,10 +27,13 @@ public:
     ServerConfig::Platform platform() const;
     std::string platform_str() const;
     uint16_t poolSize() const;
+    std::vector<std::pair<module_path, module_priority>> const &modules() const;
     std::unordered_map<std::string, std::string> const &modulesProperties() const;
 
 private:
     void loadProperties();
+    void loadModules(json const &data);
+    void loadModulesProperties(json const &data);
 
     std::string _serverName = "zia";
     std::string _serverVersion;
@@ -34,6 +42,7 @@ private:
     uint16_t _poolSize = 1;
     std::string _modulesPath = "modules";
     std::string _configPath;
+    std::vector<std::pair<module_path, module_priority>> _modules;
     std::unordered_map<std::string, std::string> _modulesProperties;
 };
 

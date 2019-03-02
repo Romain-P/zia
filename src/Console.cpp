@@ -17,6 +17,7 @@ const std::unordered_map<std::string, bool(Console::*)(std::vector<std::string>)
         { "unload", &Console::onUnload },
         { "loadall", &Console::onLoadAll },
         { "unloadall", &Console::onUnloadAll },
+        { "list", &Console::onList },
         { "help", &Console::onHelp }
 };
 
@@ -40,8 +41,7 @@ bool Console::onExit(std::vector<std::string>) {
         server.network().stop();
     }
 
-    //TODO: unload modules
-
+    server.modules().unloadAll();
     return true;
 }
 
@@ -69,16 +69,19 @@ bool Console::onStop(std::vector<std::string>) {
 
 bool Console::onRestart(std::vector<std::string>) {
     server.network().restart();
-    info("server restarted");
+    info("tcp server restarted");
     return false;
 }
 
 bool Console::onLoad(std::vector<std::string> args) {
-    if (args.size() < 2) {
-        errors("missing argument [module]");
+    if (args.size() < 3) {
+        errors("expected arguments [module] and [priority]");
         return false;
     }
-    //TODO
+    std::string &path = args[1];
+    ssizet priority = std::stoi(args[2]);
+
+    server.modules().load(path, priority);
     return false;
 }
 
@@ -87,31 +90,36 @@ bool Console::onUnload(std::vector<std::string> args) {
         errors("missing argument [module]");
         return false;
     }
-    //TODO
+    server.modules().unload(args[1]);
     return false;
 }
 
 bool Console::onLoadAll(std::vector<std::string>) {
-
-    //TODO
+    server.modules().loadAll();
     return false;
 }
 
 bool Console::onUnloadAll(std::vector<std::string>) {
-    //TODO
+    server.modules().unloadAll();
+    return false;
+}
+
+bool Console::onList(std::vector<std::string>) {
+    pureinfo(server.modules().dumb());
     return false;
 }
 
 bool Console::onHelp(std::vector<std::string>) {
-    pureinfo("[console]: command list\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n",
-            "config         ", "reloads the configuration file",
-            "start          ", "starts the tcp server",
-            "stop           ", "stops the tcp server",
-            "restart        ", "restarts the tcp server",
-            "load [module]  ", "loads a module",
-            "unload [module]", "unloads a module",
-            "loadall        ", "loads all modules",
-            "unloadall      ", "unloads all modules",
-            "exit           ", "exits this program");
+    pureinfo("[console]: command list\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n  %s:\t\t%s\n",
+            "config                   ", "reloads the configuration file",
+            "start                    ", "starts the tcp server",
+            "stop                     ", "stops the tcp server",
+            "restart                  ", "restarts the tcp server",
+            "load [module] [priority] ", "loads a module",
+            "unload [module]          ", "unloads a module",
+            "loadall                  ", "loads all modules",
+            "unloadall                ", "unloads all modules",
+            "list                     ", "list all loaded modules",
+            "exit                     ", "exits this program");
     return false;
 }

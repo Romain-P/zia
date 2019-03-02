@@ -25,6 +25,7 @@ private:
     bool onUnload(std::vector<std::string>);
     bool onLoadAll(std::vector<std::string>);
     bool onUnloadAll(std::vector<std::string>);
+    bool onList(std::vector<std::string>);
     bool onHelp(std::vector<std::string>);
 };
 

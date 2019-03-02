@@ -4,10 +4,7 @@
 
 #include "ZiaConfig.h"
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <iostream>
-
-using json = nlohmann::json;
 
 ZiaConfig::ZiaConfig(std::string const &configPath) : _configPath(configPath) {}
 
@@ -44,8 +41,26 @@ void ZiaConfig::loadProperties() {
     if (data.find("poolSize") != data.end())
         _poolSize = data["poolSize"];
 
-    //TODO: modulesProperties nested objects / make it recursive
+    loadModules(data);
+    loadModulesProperties(data);
+}
+
+void ZiaConfig::loadModules(json const &data) {
+    json modulesProperties = data["modules"];
+
+    _modules.clear();
+    for (json::iterator it = modulesProperties.begin(); it != modulesProperties.end(); ++it) {
+        module_path const &path = it.key();
+        module_priority priority = it.value();
+
+        _modules.emplace_back(path, priority);
+    }
+}
+
+void ZiaConfig::loadModulesProperties(const ZiaConfig::json &data) {
     json modulesProperties = data["modulesProperties"];
+
+    _modulesProperties.clear();
     for (json::iterator it = modulesProperties.begin(); it != modulesProperties.end(); ++it) {
         std::string value;
 
@@ -118,4 +133,8 @@ std::unordered_map<std::string, std::string> const &ZiaConfig::modulesProperties
 
 uint16_t ZiaConfig::poolSize() const {
     return _poolSize;
+}
+
+const std::vector<std::pair<ZiaConfig::module_path, ZiaConfig::module_priority>> &ZiaConfig::modules() const {
+    return _modules;
 }
