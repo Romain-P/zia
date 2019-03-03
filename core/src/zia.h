@@ -3,6 +3,7 @@
 #include <boost/asio.hpp>
 #include <string>
 #include <stdio.h>
+#include <stdarg.h>
 #include "Zia/API.hpp"
 #include "zia.h"
 
@@ -65,6 +66,32 @@ namespace string_util {
     }
 }
 
+namespace assert_util {
+    inline void assertTrue(bool assertion, std::string const &onError, ...) {
+        if (assertion) return;
+
+        char str[1024];
+        va_list ap;
+        va_start(ap, onError.c_str());
+        vsnprintf(str, 1024, onError.c_str(), ap);
+        va_end(ap);
+
+        throw std::runtime_error(str);
+    }
+}
+
+namespace throw_util {
+    inline void throwError(std::string const &error, ...) {
+        char str[1024];
+        va_list ap;
+        va_start(ap, error.c_str());
+        vsnprintf(str, 1024, error.c_str(), ap);
+        va_end(ap);
+
+        throw std::runtime_error(str);
+    }
+}
+
 namespace file_util {
     inline char separator()
     {
@@ -79,6 +106,8 @@ namespace file_util {
 using namespace boost;
 using namespace print_util;
 using namespace string_util;
+using namespace assert_util;
+using namespace throw_util;
 using namespace Zia::API;
 
 

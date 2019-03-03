@@ -19,7 +19,7 @@ public:
     void stop();
 
     void addSession(ptr<Session> session);
-    void delSession(ptr<Session> session);
+    void delSession(ptr<Session> session, bool async = true);
 
     boost::thread &thread();
     boost::asio::thread_pool &worker();

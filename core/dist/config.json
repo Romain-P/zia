@@ -4,9 +4,11 @@
     "address": "127.0.0.1",
     "port": 8080,
     "poolSize": 10,
+    "networkReadBuffer": 8096,
     "modulesPath": "modules",
     "modules": {
-        "zia-log.so": 1
+        "zia-log.so": 1,
+        "zia-unsecure_network.so": 2
     },
     "modulesProperties": {
         "logLevel": "debug",

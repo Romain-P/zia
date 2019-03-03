@@ -9,26 +9,25 @@
 
 void Session::start() {
     _handlers = server.modules().moduleHandlersFactory();
+    connectionStart();
+    connectionRead();
 
-    if (!connectionStart() || !connectionRead()) {
-        errors("no suitable module found for read incoming connections");
-        end();
-        return;
-    }
-
-    pureinfo(&_readBuffer[0]);
-    send(_readBuffer);
+    _writeBuffer = _readBuffer;
+    connectionWrite();
+    end();
 }
 
-bool Session::connectionStart() {
+void Session::connectionStart() {
     auto result = executePipeline([this](RequestHandler::pointer handler) {
         return handler->onConnectionStart(server.connectionInfos(), _socket);
     });
 
-    return result != http::code::internal_error;
+    assertTrue(result != http::code::internal_error, "error encountered when connection started");
 }
 
-bool Session::connectionRead() {
+void Session::connectionRead() {
+    _readBuffer.resize(server.config().networkReadBuffer());
+
     auto result = executePipeline([this](RequestHandler::pointer handler) {
         return handler->onConnectionRead(server.connectionInfos(), _socket, _readBuffer, _readSize);
     });
@@ -36,7 +35,21 @@ bool Session::connectionRead() {
     if (!_readSize)
         result = http::code::internal_error;
 
-    return result != http::code::internal_error;
+    assertTrue(result != http::code::internal_error, "no suitable module found for read sockets of incoming connections");
+}
+
+void Session::readRequest() {
+
+}
+
+void Session::connectionWrite() {
+    sizet unused = _writeBuffer.size();
+
+    auto result = executePipeline([this, &unused](RequestHandler::pointer handler) {
+        return handler->onConnectionWrite(server.connectionInfos(), _socket, _writeBuffer, unused);
+    });
+
+    assertTrue(result != http::code::internal_error, "no suitable module found for write on sockets");
 }
 
 HookResultType Session::executePipeline(std::function<HookResultType(RequestHandler::pointer)> hook) {
@@ -53,12 +66,6 @@ HookResultType Session::executePipeline(std::function<HookResultType(RequestHand
 
 void Session::end() {
     server.network().delSession(shared_from_this());
-}
-
-void Session::send(std::vector<char> const &data) {
-    boost::system::error_code ignored_error;
-    boost::asio::write(_socket, boost::asio::buffer(data),
-                       boost::asio::transfer_all(), ignored_error);
 }
 
 tcp::socket &Session::socket() {

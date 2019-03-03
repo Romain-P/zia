@@ -41,6 +41,9 @@ void ZiaConfig::loadProperties() {
     if (data.find("poolSize") != data.end())
         _poolSize = data["poolSize"];
 
+    if (data.find("networkReadBuffer") != data.end())
+        _networkReadBuffer = data["networkReadBuffer"];
+
     loadModules(data);
     loadModulesProperties(data);
 }
@@ -133,6 +136,10 @@ std::unordered_map<std::string, std::string> const &ZiaConfig::modulesProperties
 
 uint16_t ZiaConfig::poolSize() const {
     return _poolSize;
+}
+
+uint32_t ZiaConfig::networkReadBuffer() const {
+    return _networkReadBuffer;
 }
 
 const std::vector<std::pair<ZiaConfig::module_path, ZiaConfig::module_priority>> &ZiaConfig::modules() const {

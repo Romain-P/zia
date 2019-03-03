@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
-project(zia CXX)
+cmake_minimum_required(VERSION 3.13)
 
 set(FILES
         src/zia.h

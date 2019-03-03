@@ -59,18 +59,22 @@ void Network::addSession(ptr<Session> session) {
     });
 }
 
-void Network::delSession(ptr<Session> session) {
-    server.submit([this, session]() {
-        lock_t lock(_locker);
+void Network::delSession(ptr<Session> session, bool async) {
+    if (async) {
+        server.submit([this, session]() {
+            delSession(session, false);
+        });
+        return;
+    }
 
-        auto found = _sessions.find(session->id());
+    lock_t lock(_locker);
+    auto found = _sessions.find(session->id());
 
-        if (found != _sessions.end()) {
-            if (session->socket().is_open())
-                session->socket().close();
-            _sessions.erase(session->id());
-        }
-    });
+    if (found != _sessions.end()) {
+        if (session->socket().is_open())
+            session->socket().close();
+        _sessions.erase(session->id());
+    }
 }
 
 void Network::asyncAccept() {
@@ -87,12 +91,12 @@ void Network::onAccept(ptr<Session> session, const error_code &error) {
     if (_io->stopped()) return;
 
     if (!error) {
-        server.submit([session]() {
+        server.submit([this, session]() {
             try {
                 session->start();
             } catch (std::exception &e) {
-                errors("exception on session %zu: %s", session->id(), e.what());
-                //TODO: onSessionEnd
+                errors("session %zu stopped: %s", session->id(), e.what());
+                delSession(session, false);
             }
         });
     }
