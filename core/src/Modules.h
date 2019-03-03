@@ -8,6 +8,8 @@
 #include <set>
 #include "zia.h"
 
+using module_name = std::string;
+
 class Modules {
 public:
     struct ModuleEntry {
@@ -25,6 +27,10 @@ public:
     void unload(std::string const &path);
     void unloadAll();
     std::string dumb();
+
+public: /* hooks */
+    HookResultType executePipeline(std::function<HookResultType(Module::pointer)> hook);
+    std::unordered_map<module_name, RequestHandler::pointer> moduleHandlersFactory();
 
 private:
     void unload(ModuleEntry const &module);

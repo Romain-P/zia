@@ -4,6 +4,7 @@
 
 #include "Modules.h"
 #include "Server.h"
+#include "Http.h"
 #include <dlfcn.h>
 
 void Modules::load(std::string const &path, ssizet priority) {
@@ -118,4 +119,41 @@ Modules::ModuleEntry const *Modules::getModule(std::string const &path) const {
         if (module.path == path)
             return &module;
     return nullptr;
+}
+
+HookResultType Modules::executePipeline(std::function<HookResultType(Module::pointer)> hook) {
+    lock_t lock(_locker);
+    Module::pointer module;
+    HookResultType result;
+    RequestHandler::pointer handler;
+
+    for (auto &entry: _modules) {
+        module = entry.instance;
+        try {
+            result = hook(module);
+        } catch(std::exception &e) {
+            errors("errors encountered on hook of module %s (%s)", module->getName().c_str(), e.what());
+            result = http::code::internal_error;
+        }
+
+        if (result != HookResult::Declined)
+            return result;
+    }
+    return http::code::resource_not_found;
+}
+
+std::unordered_map<module_name, RequestHandler::pointer> Modules::moduleHandlersFactory() {
+    lock_t lock(_locker);
+    std::unordered_map<module_name, RequestHandler::pointer> handlers;
+
+    for (auto &entry: _modules) {
+        try {
+            handlers[entry.instance->getName()] = entry.instance->newRequestHandler();
+        } catch (std::exception &e) {
+            errors("error while calling request handler factory of module %s (%s)", entry.instance->getName().c_str(), e.what());
+            unload(entry);
+        }
+    }
+
+    return handlers;
 }

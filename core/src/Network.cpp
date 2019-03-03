@@ -62,9 +62,14 @@ void Network::addSession(ptr<Session> session) {
 void Network::delSession(ptr<Session> session) {
     server.submit([this, session]() {
         lock_t lock(_locker);
+
         auto found = _sessions.find(session->id());
-        if (found != _sessions.end())
+
+        if (found != _sessions.end()) {
+            if (session->socket().is_open())
+                session->socket().close();
             _sessions.erase(session->id());
+        }
     });
 }
 
