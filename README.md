@@ -1,12 +1,16 @@
 ## httpd server
 
 ### Prerequisites
- * cmake >= 3.10
- * C++17 and compatible gcc/g++
- * conan
+ * Cmake >= 3.13
+ * C++17
+ * gcc recommended >= 8.0
+ * Conan
+ * For Unix: Makefile
+ * For Windows: Visual Studio 15
 
 ### Installation
 
- * clone this repository
- * On Unix System `mkdir build && cd build && conan install .. && cmake .. -G "Unix Makefiles" && make install`
+ * Clone this repository
+ * On Unix System `./install/install.sh`
+ * On Windows System `/install/install.bat`
  * Project binaries built at `/generated`

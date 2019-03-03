@@ -17,13 +17,13 @@ public:
     tcp::socket &socket();
     sizet id() const;
 
-private: /** process **/
+private:
     void connectionStart();
     void connectionRead();
     void connectionWrite();
+    void connectionEnd();
 
     void readRequest();
-    void end();
     HookResultType executePipeline(std::function<HookResultType(RequestHandler::pointer)> hook);
 
 private:
@@ -34,7 +34,8 @@ private:
 private:
     enum ReadState {
         READ_HEADERS,
-        READ_BODY
+        READ_BODY,
+        READ_END
     };
 
     sizet _id;

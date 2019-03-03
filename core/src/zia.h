@@ -72,7 +72,7 @@ namespace assert_util {
 
         char str[1024];
         va_list ap;
-        va_start(ap, onError.c_str());
+        va_start(ap, onError);
         vsnprintf(str, 1024, onError.c_str(), ap);
         va_end(ap);
 
@@ -84,7 +84,7 @@ namespace throw_util {
     inline void throwError(std::string const &error, ...) {
         char str[1024];
         va_list ap;
-        va_start(ap, error.c_str());
+        va_start(ap, error);
         vsnprintf(str, 1024, error.c_str(), ap);
         va_end(ap);
 

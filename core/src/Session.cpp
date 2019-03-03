@@ -14,7 +14,7 @@ void Session::start() {
 
     _writeBuffer = _readBuffer;
     connectionWrite();
-    end();
+    connectionEnd();
 }
 
 void Session::connectionStart() {
@@ -39,7 +39,7 @@ void Session::connectionRead() {
 }
 
 void Session::readRequest() {
-
+    
 }
 
 void Session::connectionWrite() {
@@ -64,7 +64,7 @@ HookResultType Session::executePipeline(std::function<HookResultType(RequestHand
     });
 }
 
-void Session::end() {
+void Session::connectionEnd() {
     server.network().delSession(shared_from_this());
 }
 
