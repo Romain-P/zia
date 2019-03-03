@@ -1,11 +1,11 @@
-** httpd server
+## httpd server
 
-*** Prerequisites
+### Prerequisites
  * cmake >= 3.10
  * C++17 and compatible gcc/g++
  * conan
 
-*** Installation
+### Installation
 
  * clone this repository
  * On Unix System `mkdir build && cd build && conan install .. && cmake .. -G "Unix Makefiles" && make install`
