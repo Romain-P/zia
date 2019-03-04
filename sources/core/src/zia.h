@@ -67,13 +67,13 @@ namespace string_util {
 }
 
 namespace assert_util {
-    inline void assertTrue(bool assertion, std::string const &onError, ...) {
+    inline void assertTrue(bool assertion, char const *onError, ...) {
         if (assertion) return;
 
         char str[1024];
         va_list ap;
         va_start(ap, onError);
-        vsnprintf(str, 1024, onError.c_str(), ap);
+        vsnprintf(str, 1024, onError, ap);
         va_end(ap);
 
         throw std::runtime_error(str);
@@ -81,11 +81,11 @@ namespace assert_util {
 }
 
 namespace throw_util {
-    inline void throwError(std::string const &error, ...) {
+    inline void throwError(char const *error, ...) {
         char str[1024];
         va_list ap;
         va_start(ap, error);
-        vsnprintf(str, 1024, error.c_str(), ap);
+        vsnprintf(str, 1024, error, ap);
         va_end(ap);
 
         throw std::runtime_error(str);
