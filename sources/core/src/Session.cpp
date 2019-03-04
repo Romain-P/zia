@@ -41,9 +41,9 @@ void Session::connectionRead() {
         return handler->onConnectionRead(server.connectionInfos(), _socket, buffer, readSize);
     });
 
-    if (!readSize)
-        result = http::code::internal_error;
-    else if (result != http::code::internal_error) {
+    if (!readSize) {
+        throwError("no request data received (0 byte read on the socket)");
+    } else if (result != http::code::internal_error) {
         _readBuffer.insert(_readBuffer.end(), buffer.begin(), buffer.begin() + readSize);
     }
 
