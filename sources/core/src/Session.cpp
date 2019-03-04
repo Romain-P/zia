@@ -9,11 +9,11 @@
 
 void Session::start() {
     _handlers = server.modules().moduleHandlersFactory();
-    connectionStart();
-    connectionRead();
 
-    _writeBuffer = _readBuffer;
-    connectionWrite();
+    connectionStart();
+    readRequest();
+    createResponse();
+    sendResponse();
     connectionEnd();
 }
 
@@ -25,21 +25,80 @@ void Session::connectionStart() {
     assertTrue(result != http::code::internal_error, "error encountered when connection started");
 }
 
-void Session::connectionRead() {
-    _readBuffer.resize(server.config().networkReadBuffer());
+void Session::connectionEnd() {
+    executePipeline([this](RequestHandler::pointer handler) {
+        return handler->onConnectionEnd(server.connectionInfos(), _socket);
+    });
+}
 
-    auto result = executePipeline([this](RequestHandler::pointer handler) {
-        return handler->onConnectionRead(server.connectionInfos(), _socket, _readBuffer, _readSize);
+void Session::connectionRead() {
+    std::vector<char> buffer;
+    sizet readSize = 0;
+
+    buffer.resize(server.config().networkReadBuffer());
+
+    auto result = executePipeline([this, &buffer, &readSize](RequestHandler::pointer handler) {
+        return handler->onConnectionRead(server.connectionInfos(), _socket, buffer, readSize);
     });
 
-    if (!_readSize)
+    if (!readSize)
         result = http::code::internal_error;
+    else if (result != http::code::internal_error) {
+        _readBuffer.insert(_readBuffer.end(), buffer.begin(), buffer.begin() + readSize);
+    }
 
     assertTrue(result != http::code::internal_error, "no suitable module found for read sockets of incoming connections");
 }
 
 void Session::readRequest() {
-    
+    std::pair<headers_end_offset, body_start_offset> offsets;
+
+    do {
+        connectionRead();
+        offsets = http::request::parser::requestOffsets(&_readBuffer[0]);
+    } while (offsets == http::request::parser::offsets_not_found);
+
+    assertTrue(http::request::parser::parseRequest(&_readBuffer[0], sizet(offsets.first), _request), "invalid request received");
+
+    auto entry = _request.headers.find(http::headers::content_length);
+    if (entry == _request.headers.end()) return;
+
+    ssizet bodyLength = std::stoi(entry->second);
+    if (bodyLength <= 0) return;
+
+    sizet totalSize = sizet(offsets.second) + bodyLength;
+    while (_readBuffer.size() < totalSize)
+        connectionRead();
+
+    _request.body.insert(_request.body.end(), _readBuffer.begin() + offsets.second, _readBuffer.end());
+}
+
+void Session::createResponse() {
+    auto result = executePipeline([this](RequestHandler::pointer handler) {
+        return handler->onBeforeRequest(server.connectionInfos(), _request);
+    });
+
+    if (http::is_error_code(result)) {
+        result = executePipeline([this, &result](RequestHandler::pointer handler) {
+            return handler->onRequestError(server.connectionInfos(), result, _response);
+        });
+    }
+    else {
+        result = executePipeline([this](RequestHandler::pointer handler) {
+            return handler->onRequest(server.connectionInfos(), _request, _response);
+        });
+    }
+
+    if (result == http::code::internal_error)
+        _response = http::responses::internal_error;
+
+    result = executePipeline([this](RequestHandler::pointer handler) {
+        return handler->onResponse(server.connectionInfos(), _response);
+    });
+}
+
+void Session::sendResponse() {
+
 }
 
 void Session::connectionWrite() {
@@ -62,10 +121,6 @@ HookResultType Session::executePipeline(std::function<HookResultType(RequestHand
         RequestHandler::pointer handler = it->second;
         return hook(handler);
     });
-}
-
-void Session::connectionEnd() {
-    server.network().delSession(shared_from_this());
 }
 
 tcp::socket &Session::socket() {

@@ -17,7 +17,7 @@ set(CMAKE_BUILD_TYPE Release)
 
 add_subdirectory(sources)
 
-install(FILES core/dist/config.json DESTINATION ${CMAKE_SOURCE_DIR}/generated)
+install(FILES sources/core/dist/config.json DESTINATION ${CMAKE_SOURCE_DIR}/generated)
 install(TARGETS zia log unsecure_network
         RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/generated
         LIBRARY DESTINATION ${CMAKE_SOURCE_DIR}/generated/modules)

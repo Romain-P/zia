@@ -96,8 +96,8 @@ void Network::onAccept(ptr<Session> session, const error_code &error) {
                 session->start();
             } catch (std::exception &e) {
                 errors("session %zu stopped: %s", session->id(), e.what());
-                delSession(session, false);
             }
+            delSession(session, false);
         });
     }
     asyncAccept();
