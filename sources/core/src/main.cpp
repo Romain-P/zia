@@ -6,7 +6,7 @@
 #ifdef _WIN32
  #include <windows.h>
  #include <sstream>
- #incldue <string>
+ #include <string>
 
 LONG WINAPI TopLevelExceptionHandler(PEXCEPTION_POINTERS pExceptionInfo)
 {
