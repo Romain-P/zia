@@ -26,6 +26,7 @@ public:
     void loadAll();
     void unload(std::string const &path);
     void unloadAll();
+    void configReloaded();
     std::string dumb();
 
 public: /* hooks */

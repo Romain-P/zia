@@ -43,6 +43,7 @@ void Modules::load(std::string const &path, ssizet priority) {
     }
 
     _modules.insert({priority, path, library, module});
+    module->onActivate(server.sharedConfig());
     info("module %s loaded successfully", module->getName().c_str());
 }
 
@@ -95,6 +96,9 @@ std::string Modules::dumb() {
 void Modules::unload(const Modules::ModuleEntry &entry) {
     Module::recycler recycler = nullptr;
     std::string moduleName = entry.instance->getName();
+
+    entry.instance->onConfigChange(server.sharedConfig());
+
     try {
         recycler = (Module::recycler) dlsym(entry.library, "recycler");
         recycler(entry.instance);
@@ -105,6 +109,13 @@ void Modules::unload(const Modules::ModuleEntry &entry) {
 
     _modules.erase(entry);
     info("module %s unloaded %s", moduleName.c_str(), recycler ? "successfully" : "with possible memory leak.");
+}
+
+void Modules::configReloaded() {
+    lock_t lock(_locker);
+
+    for (auto &module: _modules)
+        module.instance->onConfigChange(server.sharedConfig());
 }
 
 bool Modules::priorityUnavailable(ssizet priority) const {

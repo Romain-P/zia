@@ -24,8 +24,6 @@ bool Server::reloadConfig() {
         warning("missing or corrupted configuration file, default values used.");
     }
 
-    //TODO: hook onConfigChange
-
     info("server properties\tserverName: %s, serverVersion: %s, address: %s, port: %d, poolSize: %d, modulesPath: %s",
             _config.serverName().c_str(), _config.serverVersion().c_str(), _config.address().c_str(),
             _config.port(), _config.poolSize(), _config.modulesPath().c_str());
@@ -39,6 +37,8 @@ bool Server::reloadConfig() {
         if (first) first = false;
     }
     info("modules properties\t" + properties);
+
+    _modules.configReloaded();
     return reloaded;
 }
 
