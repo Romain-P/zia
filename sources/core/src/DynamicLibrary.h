@@ -22,7 +22,7 @@ namespace dl {
 
     inline bool close(void *module) {
 #ifdef _WIN32
-        return (bool) FreeLibrary(path, RTLD_LAZY);
+        return (bool) FreeLibrary(module);
 #else
         return (bool) dlclose(module);
 #endif
@@ -31,7 +31,7 @@ namespace dl {
     template<typename T>
     inline T pointer(void *module, char const *name) {
 #ifdef _WIN32
-        return (T) GetProcAddress(path, RTLD_LAZY);
+        return (T) GetProcAddress(module, name);
 #else
         return (T) dlsym(module, name);
 #endif
