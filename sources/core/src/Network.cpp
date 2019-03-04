@@ -8,25 +8,34 @@
 void Network::start() {
     info("tcp server listening on %s:%d", server.config().address().c_str(), server.config().port());
 
-    while (_thread.joinable());
     _thread = boost::thread([this]() {
+        info("1");
         boost::asio::socket_base::reuse_address option(true);
+        info("2");
         _io = std::make_unique<boost_io>();
+        info("3");
         _worker = std::make_unique<boost::asio::thread_pool>(server.config().poolSize());
+        info("4");
 
         try {
             _acceptor = std::make_unique<tcp::acceptor>(*(_io.get()), tcp::endpoint(tcp::v4(), server.config().port()));
+            info("5");
             _acceptor->set_option(option);
+            info("6");
 
             asyncAccept();
+            info("7");
 
             _io->run();
+            info("8");
         } catch (std::exception &e) {
+            info("9");
             errors("tcp server error: %s", e.what());
         }
         info("tcp server stopped");
         _thread.detach();
     });
+    info("10");
 }
 
 void Network::restart() {
@@ -81,11 +90,16 @@ void Network::delSession(ptr<Session> session, bool async) {
 void Network::asyncAccept() {
     lock_t lock(_locker);
 
+    info("a");
     auto session = boost::make_shared<Session>(++_sessionCounter, *(_io.get()));
+    info("b");
     auto handler = boost::bind(&Network::onAccept, this, session, boost::asio::placeholders::error);
 
+    info("c");
     _acceptor->async_accept(session->socket(), handler);
+    info("d");
     _sessions[session->id()] = session;
+    info("e");
 }
 
 void Network::onAccept(ptr<Session> session, const error_code &error) {
