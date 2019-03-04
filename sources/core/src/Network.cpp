@@ -18,7 +18,8 @@ void Network::start() {
         info("4");
 
         try {
-            _acceptor.reset(new tcp::acceptor(*_io, tcp::endpoint(tcp::v4(), server.config().port())));
+            boost_io io;
+            _acceptor.reset(new tcp::acceptor(io, tcp::endpoint(tcp::v4(), server.config().port())));
             info("5");
             _acceptor->set_option(option);
             info("6");
