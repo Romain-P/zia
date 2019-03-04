@@ -30,8 +30,6 @@ void Network::start() {
 
 void Network::restart() {
     stop();
-    if (_thread.joinable())
-        _thread.join();
     start();
 }
 
@@ -41,15 +39,23 @@ void Network::stop() {
     for (auto &it: _sessions) {
         tcp::socket &socket = it.second->socket();
 
-        if (socket.is_open())
+        if (socket.is_open()) {
+            socket.shutdown(tcp::socket::shutdown_type::shutdown_both);
             socket.close();
+        }
     }
-    _acceptor.close();
+
     _io.stop();
     _worker->stop();
     _sessions.clear();
     _sessionCounter = 0;
+
     info("tcp server cleared successfully");
+
+    if (_thread.joinable())
+        _thread.join();
+
+    _acceptor.close();
 }
 
 void Network::addSession(ptr<Session> session) {
@@ -71,8 +77,10 @@ void Network::delSession(ptr<Session> session, bool async) {
     auto found = _sessions.find(session->id());
 
     if (found != _sessions.end()) {
-        if (session->socket().is_open())
+        if (session->socket().is_open()) {
+            session->socket().shutdown(tcp::socket::shutdown_type::shutdown_both);
             session->socket().close();
+        }
         _sessions.erase(session->id());
     }
 }
@@ -83,8 +91,8 @@ void Network::asyncAccept() {
     auto session = boost::make_shared<Session>(++_sessionCounter, _io);
     auto handler = boost::bind(&Network::onAccept, this, session, boost::asio::placeholders::error);
 
-    _acceptor.async_accept(session->socket(), handler);
     _sessions[session->id()] = session;
+    _acceptor.async_accept(session->socket(), handler);
 }
 
 void Network::onAccept(ptr<Session> session, const error_code &error) {
