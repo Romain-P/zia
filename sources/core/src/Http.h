@@ -36,8 +36,8 @@ namespace http {
         namespace parser {
             inline const auto offsets_not_found = std::make_pair<headers_end_offset, body_start_offset >(-1, -1);
 
-            inline std::pair<headers_end_offset, body_start_offset> requestOffsets(char const *buffer) {
-                std::string str(buffer);
+            inline std::pair<headers_end_offset, body_start_offset> requestOffsets(std::vector<char> const &buffer) {
+                std::string str(buffer.begin(), buffer.end());
 
                 auto offset = str.find(headers_end_delimiter);
 
@@ -47,12 +47,12 @@ namespace http {
                     return offsets_not_found;
             }
 
-            inline bool parseRequest(char const *buffer, sizet size, Request &request) {
+            inline bool parseRequest(std::vector<char> const &buffer, sizet size, Request &request) {
                 static const std::regex regex_request("([A-Z]+)\\s+([^\\s]+)\\s+(.+)");
                 static const std::regex regex_header("([^:\n]+):\\s?(.+)");
 
                 std::smatch matcher;
-                std::string str(buffer, buffer + size);
+                std::string str(buffer.begin(), buffer.begin() + size);
                 if (!std::regex_search(str , matcher, regex_request))
                     return false;
 

@@ -14,6 +14,8 @@
 
 class Network {
 public:
+    Network() : _io(), _acceptor(_io, tcp::v4()), _sessionCounter(0) {};
+
     void start();
     void restart();
     void stop();
@@ -23,11 +25,11 @@ public:
 
     boost::thread &thread();
     boost::asio::thread_pool &worker();
-private:
 
+private:
+    boost_io _io;
+    tcp::acceptor _acceptor;
     sizet _sessionCounter;
-    uptr<boost_io> _io;
-    uptr<tcp::acceptor> _acceptor;
     std::unordered_map<session_id, ptr<Session>> _sessions;
     std::mutex _locker;
     boost::thread _thread;

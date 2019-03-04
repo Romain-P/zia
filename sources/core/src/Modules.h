@@ -20,6 +20,9 @@ public:
 
         //std::set auto sorting
         bool operator<(ModuleEntry const &other) const { return priority < other.priority; }
+
+        ModuleEntry(ssizet priority_, std::string const &path_, void *library_, Module::pointer instance_);
+        ~ModuleEntry();
     };
 
     void load(std::string const &path, ssizet priority);
@@ -34,12 +37,12 @@ public: /* hooks */
     std::unordered_map<module_name, RequestHandler::pointer> moduleHandlersFactory();
 
 private:
-    void unload(ModuleEntry const &module);
+    void unload(std::shared_ptr<ModuleEntry> module);
     bool priorityUnavailable(ssizet priority) const;
-    ModuleEntry const *getModule(std::string const &path) const;
+    std::shared_ptr<ModuleEntry> getModule(std::string const &path) const;
 
 private:
-    std::set<ModuleEntry> _modules;
+    std::set<std::shared_ptr<ModuleEntry>> _modules;
     std::mutex _locker;
 };
 

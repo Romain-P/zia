@@ -55,10 +55,10 @@ void Session::readRequest() {
 
     do {
         connectionRead();
-        offsets = http::request::parser::requestOffsets(&_readBuffer[0]);
+        offsets = http::request::parser::requestOffsets(_readBuffer);
     } while (offsets == http::request::parser::offsets_not_found);
 
-    assertTrue(http::request::parser::parseRequest(&_readBuffer[0], sizet(offsets.first), _request), "invalid request received");
+    assertTrue(http::request::parser::parseRequest(_readBuffer, sizet(offsets.first), _request), "invalid request received");
 
     auto entry = _request.headers.find(http::headers::content_length);
     if (entry == _request.headers.end()) return;

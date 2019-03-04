@@ -3,7 +3,6 @@
 //
 
 #include "Server.h"
-#include <boost/bind.hpp>
 
 Server &Server::instance() {
     static Server singleton;

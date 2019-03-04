@@ -2,10 +2,12 @@
 // Created by romain on 3/1/19.
 //
 
+#include <memory>
 #include "Modules.h"
 #include "Server.h"
 #include "Http.h"
 #include "DynamicLibrary.h"
+#include "zia.h"
 
 void Modules::load(std::string const &path, ssizet priority) {
     lock_t lock(_locker);
@@ -42,7 +44,7 @@ void Modules::load(std::string const &path, ssizet priority) {
         return;
     }
 
-    _modules.insert({priority, path, library, module});
+    _modules.insert(std::make_shared<ModuleEntry>(priority, path, library, module));
     module->onActivate(server.sharedConfig());
     info("module %s loaded successfully", module->getName().c_str());
 }
@@ -56,19 +58,19 @@ void Modules::loadAll() {
 void Modules::unload(std::string const &path) {
     lock_t lock(_locker);
 
-    ModuleEntry const *entry;
-    if (!(entry = getModule(path))) {
+    std::shared_ptr<ModuleEntry> entry;
+    if (!(entry = getModule(path)).get()) {
         errors("library loader can't unload the module %s (module not loaded)", path.c_str());
         return;
     }
 
-    unload(*entry);
+    unload(entry);
 }
 
 void Modules::unloadAll() {
     lock_t lock(_locker);
 
-    std::set<ModuleEntry> copy(_modules); //avoid concurrent exceptions
+    std::set<std::shared_ptr<ModuleEntry>> copy(_modules); //avoid concurrent exceptions
     for (auto &entry: copy)
         unload(entry);
     info("unloaded all modules");
@@ -86,60 +88,56 @@ std::string Modules::dumb() {
     for (auto &it: _modules) {
         if (!first)
             infos += ", ";
-        infos += it.instance->getName();
+        infos += it->instance->getName();
         if (first) first = false;
     }
     infos += "\n";
     return infos;
 }
 
-void Modules::unload(const Modules::ModuleEntry &entry) {
-    Module::recycler recycler = nullptr;
-    std::string moduleName = entry.instance->getName();
+void Modules::unload(std::shared_ptr<ModuleEntry> entry) {
+    std::string moduleName = entry->instance->getName();
 
-    entry.instance->onConfigChange(server.sharedConfig());
-
-    try {
-        recycler = dl::pointer<Module::recycler>(entry.library, "recycler");
-        recycler(entry.instance);
-    } catch (std::exception &e) {
-        errors("library loader failed when calling the module recycler of %s (%s)", entry.path.c_str(), dl::error().c_str());
-        recycler = nullptr;
-    }
+    entry->instance->onConfigChange(server.sharedConfig());
 
     _modules.erase(entry);
-    info("module %s unloaded %s", moduleName.c_str(), recycler ? "successfully" : "with possible memory leak.");
+    info("module %s unloaded successfully", moduleName.c_str());
 }
 
 void Modules::configReloaded() {
     lock_t lock(_locker);
 
     for (auto &module: _modules)
-        module.instance->onConfigChange(server.sharedConfig());
+        module->instance->onConfigChange(server.sharedConfig());
 }
 
 bool Modules::priorityUnavailable(ssizet priority) const {
     for (auto &module: _modules)
-        if (module.priority == priority)
+        if (module->priority == priority)
             return true;
     return false;
 }
 
-Modules::ModuleEntry const *Modules::getModule(std::string const &path) const {
+std::shared_ptr<Modules::ModuleEntry> Modules::getModule(std::string const &path) const {
     for (auto &module: _modules)
-        if (module.path == path)
-            return &module;
-    return nullptr;
+        if (module->path == path)
+            return module;
+    return std::shared_ptr<ModuleEntry>(nullptr);
 }
 
 HookResultType Modules::executePipeline(std::function<HookResultType(Module::pointer)> hook) {
-    lock_t lock(_locker);
     Module::pointer module;
     HookResultType result;
     RequestHandler::pointer handler;
 
-    for (auto &entry: _modules) {
-        module = entry.instance;
+    std::set<std::shared_ptr<ModuleEntry>> copy;
+    {
+        lock_t lock(_locker);
+        copy = _modules;
+    }
+
+    for (auto &entry: copy) {
+        module = entry->instance;
         try {
             result = hook(module);
         } catch(std::exception &e) {
@@ -159,12 +157,25 @@ std::unordered_map<module_name, RequestHandler::pointer> Modules::moduleHandlers
 
     for (auto &entry: _modules) {
         try {
-            handlers[entry.instance->getName()] = entry.instance->newRequestHandler();
+            handlers[entry->instance->getName()] = entry->instance->newRequestHandler();
         } catch (std::exception &e) {
-            errors("error while calling request handler factory of module %s (%s)", entry.instance->getName().c_str(), e.what());
+            errors("error while calling request handler factory of module %s (%s)", entry->instance->getName().c_str(), e.what());
             unload(entry);
         }
     }
 
     return handlers;
 }
+
+Modules::ModuleEntry::~ModuleEntry() {
+    try {
+        auto recycler = dl::pointer<Module::recycler>(library, "recycler");
+        recycler(instance);
+    } catch (std::exception &e) {
+        errors("library loader failed when calling the module recycler of %s (%s)", path.c_str(), dl::error().c_str());
+    }
+    dl::close(library);
+}
+
+Modules::ModuleEntry::ModuleEntry(ssizet priority_, std::string const &path_, void *library_, Module::pointer instance_)
+        : priority(priority_), path(path_), library(library_), instance(instance_) {}
