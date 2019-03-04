@@ -5,7 +5,7 @@
 #include "Modules.h"
 #include "Server.h"
 #include "Http.h"
-#include <dlfcn.h>
+#include "DynamicLibrary.h"
 
 void Modules::load(std::string const &path, ssizet priority) {
     lock_t lock(_locker);
@@ -20,25 +20,25 @@ void Modules::load(std::string const &path, ssizet priority) {
     void *library = nullptr;
     std::string fullPath = server.config().modulesPath() + file_util::separator() + path;
 
-    library = dlopen(fullPath.c_str(), RTLD_LAZY);
+    library = dl::open(fullPath.c_str());
 
     if (library == nullptr) {
-        errors("library loader failed to load %s (%s)", fullPath.c_str(), dlerror());
+        errors("library loader failed to load %s (%s)", fullPath.c_str(), dl::error().c_str());
         return;
     }
 
     Module::factory factory = nullptr;
     Module::pointer module = nullptr;
     try {
-        factory = (Module::factory) dlsym(library, "factory");
+        factory = dl::pointer<Module::factory>(library, "factory");
         module = factory();
     } catch (std::exception &e) {
         module = nullptr;
     }
 
     if (!module) {
-        errors("library loader failed when calling the module factory of %s (%s)", path.c_str(), dlerror());
-        dlclose(library);
+        errors("library loader failed when calling the module factory of %s (%s)", path.c_str(), dl::error().c_str());
+        dl::close(library);
         return;
     }
 
@@ -100,10 +100,10 @@ void Modules::unload(const Modules::ModuleEntry &entry) {
     entry.instance->onConfigChange(server.sharedConfig());
 
     try {
-        recycler = (Module::recycler) dlsym(entry.library, "recycler");
+        recycler = dl::pointer<Module::recycler>(entry.library, "recycler");
         recycler(entry.instance);
     } catch (std::exception &e) {
-        errors("library loader failed when calling the module recycler of %s (%s)", entry.path.c_str(), dlerror());
+        errors("library loader failed when calling the module recycler of %s (%s)", entry.path.c_str(), dl::error().c_str());
         recycler = nullptr;
     }
 

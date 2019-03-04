@@ -9,7 +9,7 @@ set(FILES
         src/Console.cpp src/Console.h
         src/Network.cpp src/Network.h
         src/Modules.cpp src/Modules.h
-        src/Http.h)
+        src/Http.h src/DynamicLibrary.h)
 
 add_executable(zia ${FILES})
 target_link_libraries(zia ${CMAKE_DL_LIBS} CONAN_PKG::boost_asio CONAN_PKG::jsonformoderncpp ZiaModuleAPISpec)
