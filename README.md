@@ -11,5 +11,5 @@
 
  * Clone this repository
  * On Unix System `cd install && ./install.sh`
- * On Windows System `start install/install.bat`
+ * On Windows System `cd install && start install.bat`
  * Project binaries built at `/generated`
