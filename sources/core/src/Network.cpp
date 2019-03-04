@@ -58,13 +58,6 @@ void Network::stop() {
     _acceptor.close();
 }
 
-void Network::addSession(ptr<Session> session) {
-    server.submit([this, session]() {
-        lock_t lock(_locker);
-        _sessions[session->id()] = session;
-    });
-}
-
 void Network::delSession(ptr<Session> session, bool async) {
     if (async) {
         server.submit([this, session]() {
