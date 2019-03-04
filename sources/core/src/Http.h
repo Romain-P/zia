@@ -30,9 +30,10 @@ namespace http {
         inline const std::string content_length = "Content-Length";
     }
 
+    inline const std::string headers_end_delimiter = "\r\n\r\n";
+
     namespace request {
         namespace parser {
-            inline const std::string headers_end_delimiter = "\r\n\r\n";
             inline const auto offsets_not_found = std::make_pair<headers_end_offset, body_start_offset >(-1, -1);
 
             inline std::pair<headers_end_offset, body_start_offset> requestOffsets(char const *buffer) {
@@ -72,6 +73,24 @@ namespace http {
     }
 
     namespace responses {
+        namespace serializer {
+            inline void serialize(Response &response, std::vector<char> &buffer) {
+                std::string data(http::protocol + " ");
+                data += std::to_string(response.status_code) + " ";
+                data += response.status_message + "\n";
+
+                for (auto &it: response.headers)
+                    data += (it.first + ": " + it.second + "\n");
+
+                data += headers_end_delimiter;
+
+                if (!response.body.empty())
+                    data.insert(data.end(), response.body.begin(), response.body.end());
+
+                buffer.insert(buffer.end(), data.begin(), data.end());
+            }
+        }
+
         inline const Response bad_request = {
                 protocol,
                 code::bad_request,

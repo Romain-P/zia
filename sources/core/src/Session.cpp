@@ -91,14 +91,15 @@ void Session::createResponse() {
 
     if (result == http::code::internal_error)
         _response = http::responses::internal_error;
-
-    result = executePipeline([this](RequestHandler::pointer handler) {
-        return handler->onResponse(server.connectionInfos(), _response);
-    });
 }
 
 void Session::sendResponse() {
+    executePipeline([this](RequestHandler::pointer handler) {
+        return handler->onResponse(server.connectionInfos(), _response);
+    });
 
+    http::responses::serializer::serialize(_response, _writeBuffer);
+    connectionWrite();
 }
 
 void Session::connectionWrite() {
