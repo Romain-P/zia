@@ -18,8 +18,7 @@ void Network::start() {
         info("4");
 
         try {
-            _io.reset(new boost_io());
-            _acceptor = std::make_unique<tcp::acceptor>(*(_io.get()), tcp::endpoint(tcp::v4(), server.config().port()));
+            _acceptor.reset(new tcp::acceptor(*_io, tcp::endpoint(tcp::v4(), server.config().port())));
             info("5");
             _acceptor->set_option(option);
             info("6");
