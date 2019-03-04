@@ -8,6 +8,7 @@
 void Network::start() {
     info("tcp server listening on %s:%d", server.config().address().c_str(), server.config().port());
 
+    while (_thread.joinable());
     _thread = boost::thread([this]() {
         boost::asio::socket_base::reuse_address option(true);
         _io = std::make_unique<boost_io>();
