@@ -28,12 +28,12 @@ private:
     void createResponse();
     void sendResponse();
 
-    HookResultType executePipeline(std::function<HookResultType(RequestHandler::pointer)> hook);
+    HookResultType pipeline(std::function<HookResultType(RequestHandler::pointer)> const &hook);
 
 private:
     Request _request;
     Response _response = http::responses::not_found;
-    std::unordered_map<module_name, RequestHandler::pointer> _handlers;
+    Modules::SafeModuleContext _context;
 
 private:
     sizet _id;

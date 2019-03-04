@@ -25,6 +25,11 @@ public:
         ~ModuleEntry();
     };
 
+    struct SafeModuleContext {
+        std::unordered_map<module_name, RequestHandler::pointer> handlers;
+        std::vector<std::shared_ptr<ModuleEntry>> modules;
+    };
+
     void load(std::string const &path, ssizet priority);
     void loadAll();
     void unload(std::string const &path);
@@ -33,8 +38,8 @@ public:
     std::string dumb();
 
 public: /* hooks */
-    HookResultType executePipeline(std::function<HookResultType(Module::pointer)> hook);
-    std::unordered_map<module_name, RequestHandler::pointer> moduleHandlersFactory();
+    HookResultType executePipeline(SafeModuleContext const &ctx, std::function<HookResultType(RequestHandler::pointer)> const &hook);
+    SafeModuleContext newModuleContext();
 
 private:
     void unload(std::shared_ptr<ModuleEntry> module);

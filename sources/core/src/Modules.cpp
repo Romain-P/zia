@@ -125,21 +125,22 @@ std::shared_ptr<Modules::ModuleEntry> Modules::getModule(std::string const &path
     return std::shared_ptr<ModuleEntry>(nullptr);
 }
 
-HookResultType Modules::executePipeline(std::function<HookResultType(Module::pointer)> hook) {
+HookResultType Modules::executePipeline(SafeModuleContext const &ctx, std::function<HookResultType(RequestHandler::pointer)> const &hook) {
     Module::pointer module;
     HookResultType result;
     RequestHandler::pointer handler;
 
-    std::set<std::shared_ptr<ModuleEntry>> copy;
-    {
-        lock_t lock(_locker);
-        copy = _modules;
-    }
-
-    for (auto &entry: copy) {
+    for (auto &entry: ctx.modules) {
         module = entry->instance;
+
+        auto it = ctx.handlers.find(module->getName());
+        if (it == ctx.handlers.end())
+            return HookResult::Declined; /* skip modules added during a request */
+
+        RequestHandler::pointer requestHandler = it->second;
+
         try {
-            result = hook(module);
+            result = hook(requestHandler);
         } catch(std::exception &e) {
             errors("errors encountered on hook of module %s (%s)", module->getName().c_str(), e.what());
             result = http::code::internal_error;
@@ -151,20 +152,22 @@ HookResultType Modules::executePipeline(std::function<HookResultType(Module::poi
     return http::code::resource_not_found;
 }
 
-std::unordered_map<module_name, RequestHandler::pointer> Modules::moduleHandlersFactory() {
+Modules::SafeModuleContext Modules::newModuleContext() {
     lock_t lock(_locker);
     std::unordered_map<module_name, RequestHandler::pointer> handlers;
+    std::vector<std::shared_ptr<ModuleEntry>> safeCopy;
 
     for (auto &entry: _modules) {
         try {
             handlers[entry->instance->getName()] = entry->instance->newRequestHandler();
+            safeCopy.push_back(entry);
         } catch (std::exception &e) {
             errors("error while calling request handler factory of module %s (%s)", entry->instance->getName().c_str(), e.what());
             unload(entry);
         }
     }
 
-    return handlers;
+    return {std::move(handlers), std::move(safeCopy)};
 }
 
 Modules::ModuleEntry::~ModuleEntry() {

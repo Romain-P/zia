@@ -8,7 +8,7 @@
 #include "Http.h"
 
 void Session::start() {
-    _handlers = server.modules().moduleHandlersFactory();
+    _context = server.modules().newModuleContext();
 
     connectionStart();
     readRequest();
@@ -18,7 +18,7 @@ void Session::start() {
 }
 
 void Session::connectionStart() {
-    auto result = executePipeline([this](RequestHandler::pointer handler) {
+    auto result = pipeline([this](RequestHandler::pointer handler) {
         return handler->onConnectionStart(server.connectionInfos(), _socket);
     });
 
@@ -26,7 +26,7 @@ void Session::connectionStart() {
 }
 
 void Session::connectionEnd() {
-    executePipeline([this](RequestHandler::pointer handler) {
+    pipeline([this](RequestHandler::pointer handler) {
         return handler->onConnectionEnd(server.connectionInfos(), _socket);
     });
 }
@@ -37,7 +37,7 @@ void Session::connectionRead() {
 
     buffer.resize(server.config().networkReadBuffer());
 
-    auto result = executePipeline([this, &buffer, &readSize](RequestHandler::pointer handler) {
+    auto result = pipeline([this, &buffer, &readSize](RequestHandler::pointer handler) {
         return handler->onConnectionRead(server.connectionInfos(), _socket, buffer, readSize);
     });
 
@@ -74,17 +74,17 @@ void Session::readRequest() {
 }
 
 void Session::createResponse() {
-    auto result = executePipeline([this](RequestHandler::pointer handler) {
+    auto result = pipeline([this](RequestHandler::pointer handler) {
         return handler->onBeforeRequest(server.connectionInfos(), _request);
     });
 
     if (http::is_error_code(result)) {
-        result = executePipeline([this, &result](RequestHandler::pointer handler) {
+        result = pipeline([this, &result](RequestHandler::pointer handler) {
             return handler->onRequestError(server.connectionInfos(), result, _response);
         });
     }
     else {
-        result = executePipeline([this](RequestHandler::pointer handler) {
+        result = pipeline([this](RequestHandler::pointer handler) {
             return handler->onRequest(server.connectionInfos(), _request, _response);
         });
     }
@@ -94,7 +94,7 @@ void Session::createResponse() {
 }
 
 void Session::sendResponse() {
-    executePipeline([this](RequestHandler::pointer handler) {
+    pipeline([this](RequestHandler::pointer handler) {
         return handler->onResponse(server.connectionInfos(), _response);
     });
 
@@ -105,23 +105,15 @@ void Session::sendResponse() {
 void Session::connectionWrite() {
     sizet unused = _writeBuffer.size();
 
-    auto result = executePipeline([this, &unused](RequestHandler::pointer handler) {
+    auto result = pipeline([this, &unused](RequestHandler::pointer handler) {
         return handler->onConnectionWrite(server.connectionInfos(), _socket, _writeBuffer, unused);
     });
 
     assertTrue(result != http::code::internal_error, "no suitable module found for write on sockets");
 }
 
-HookResultType Session::executePipeline(std::function<HookResultType(RequestHandler::pointer)> hook) {
-    return server.modules().executePipeline([this, hook](Module::pointer module) {
-        auto it = _handlers.find(module->getName());
-
-        if (it == _handlers.end())
-            return HookResult::Declined; /* skip modules added during a request */
-
-        RequestHandler::pointer handler = it->second;
-        return hook(handler);
-    });
+HookResultType Session::pipeline(std::function<HookResultType(RequestHandler::pointer)> const &hook) {
+    return server.modules().executePipeline(_context, hook);
 }
 
 tcp::socket &Session::socket() {
