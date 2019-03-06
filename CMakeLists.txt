@@ -17,10 +17,11 @@ set(CMAKE_BUILD_TYPE Release)
 
 add_subdirectory(sources)
 
-set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
 install(FILES sources/core/dist/config.json DESTINATION ${CMAKE_SOURCE_DIR}/generated)
 install(FILES sources/modules/secure_network/dist/cert.crt DESTINATION ${CMAKE_SOURCE_DIR}/generated/tls)
 install(FILES sources/modules/secure_network/dist/private.key DESTINATION ${CMAKE_SOURCE_DIR}/generated/tls)
 install(TARGETS zia log secure_network unsecure_network
         RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/generated
         LIBRARY DESTINATION ${CMAKE_SOURCE_DIR}/generated/modules)
+
+set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
