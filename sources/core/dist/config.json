@@ -8,10 +8,11 @@
     "modulesPath": "modules",
     "modules": {
         "zia-log.so": 1,
-        "zia-unsecure_network.so": 2
+        "zia-secure_network.so": 2,
+        "zia-unsecure_network.so": 3
     },
     "modulesProperties": {
-        "logLevel": "debug",
-        "secureType": "ssl"
+        "tls_certificate_path": "tls/cert.crt",
+        "tls_private_key_path": "tls/private.key"
     }
 }

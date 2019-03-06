@@ -40,8 +40,10 @@ void Network::stop() {
         tcp::socket &socket = it.second->socket();
 
         if (socket.is_open()) {
-            socket.shutdown(tcp::socket::shutdown_type::shutdown_both);
-            socket.close();
+            try {
+                socket.shutdown(tcp::socket::shutdown_type::shutdown_both);
+                socket.close();
+            } catch (std::exception &e) {}
         }
     }
 
@@ -69,11 +71,14 @@ void Network::delSession(ptr<Session> session, bool async) {
     lock_t lock(_locker);
     auto found = _sessions.find(session->id());
 
-    if (found != _sessions.end()) {
-        if (session->socket().is_open()) {
+    if (session->socket().is_open()) {
+        try {
             session->socket().shutdown(tcp::socket::shutdown_type::shutdown_both);
             session->socket().close();
-        }
+        } catch (std::exception &e) {};
+    }
+
+    if (found != _sessions.end()) {
         _sessions.erase(session->id());
     }
 }

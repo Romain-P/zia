@@ -44,9 +44,17 @@ void Modules::load(std::string const &path, ssizet priority) {
         return;
     }
 
-    _modules.insert(std::make_shared<ModuleEntry>(priority, path, library, module));
-    module->onActivate(server.sharedConfig());
-    info("module %s loaded successfully", module->getName().c_str());
+    auto modulePtr = std::make_shared<ModuleEntry>(priority, path, library, module);
+    _modules.insert(modulePtr);
+
+    try {
+        module->onActivate(server.sharedConfig());
+        module->onConfigChange(server.sharedConfig());
+        info("module %s loaded successfully", module->getName().c_str());
+    } catch(std::exception &e) {
+        errors("module %s can't start (%s)", module->getName().c_str(), e.what());
+        unload(modulePtr);
+    }
 }
 
 void Modules::loadAll() {
@@ -70,7 +78,7 @@ void Modules::unload(std::string const &path) {
 void Modules::unloadAll() {
     lock_t lock(_locker);
 
-    std::set<std::shared_ptr<ModuleEntry>> copy(_modules); //avoid concurrent exceptions
+    std::vector<std::shared_ptr<ModuleEntry>> copy(_modules.begin(), _modules.end()); //avoid concurrent exceptions
     for (auto &entry: copy)
         unload(entry);
     info("unloaded all modules");
@@ -97,9 +105,6 @@ std::string Modules::dumb() {
 
 void Modules::unload(std::shared_ptr<ModuleEntry> entry) {
     std::string moduleName = entry->instance->getName();
-
-    entry->instance->onConfigChange(server.sharedConfig());
-
     _modules.erase(entry);
     info("module %s unloaded successfully", moduleName.c_str());
 }
@@ -107,8 +112,14 @@ void Modules::unload(std::shared_ptr<ModuleEntry> entry) {
 void Modules::configReloaded() {
     lock_t lock(_locker);
 
-    for (auto &module: _modules)
-        module->instance->onConfigChange(server.sharedConfig());
+    for (auto &module: _modules) {
+        try {
+            module->instance->onConfigChange(server.sharedConfig());
+        } catch(std::exception &e) {
+            errors("module %s can't load the config (%s)", module->instance->getName().c_str(), e.what());
+            unload(module);
+        }
+    }
 }
 
 bool Modules::priorityUnavailable(ssizet priority) const {
@@ -172,6 +183,7 @@ Modules::SafeModuleContext Modules::newModuleContext() {
 
 Modules::ModuleEntry::~ModuleEntry() {
     try {
+        instance->onDeactivate();
         auto recycler = dl::pointer<Module::recycler>(library, "recycler");
         recycler(instance);
     } catch (std::exception &e) {

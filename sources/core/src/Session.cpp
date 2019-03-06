@@ -43,7 +43,7 @@ void Session::connectionRead() {
 
     if (result != http::code::internal_error) {
         if (!readSize)
-            throwError("no request data received (0 byte read on the socket)");
+            throwError("closed by peer");
         else
             _readBuffer.insert(_readBuffer.end(), buffer.begin(), buffer.begin() + readSize);
     }

@@ -18,14 +18,17 @@ public:
         void *library;
         Module::pointer instance;
 
-        //std::set auto sorting
-        bool operator<(ModuleEntry const &other) const { return priority < other.priority; }
-
         ModuleEntry(ssizet priority_, std::string const &path_, void *library_, Module::pointer instance_);
         ~ModuleEntry();
     };
 
     struct SafeModuleContext {
+        /* in order removing handlers and then modules to avoid potential invalid memory access */
+        ~SafeModuleContext() {
+            handlers.clear();
+            modules.clear();
+        }
+
         std::unordered_map<module_name, RequestHandler::pointer> handlers;
         std::vector<std::shared_ptr<ModuleEntry>> modules;
     };
@@ -47,9 +50,12 @@ private:
     std::shared_ptr<ModuleEntry> getModule(std::string const &path) const;
 
 private:
-    std::set<std::shared_ptr<ModuleEntry>> _modules;
+    static bool comparator(std::shared_ptr<Modules::ModuleEntry> const &a, std::shared_ptr<Modules::ModuleEntry> const &b) {
+        return a->priority < b->priority;
+    }
+
+    std::set<std::shared_ptr<ModuleEntry>, decltype(&Modules::comparator)> _modules = decltype(_modules)(&comparator);
     std::mutex _locker;
 };
-
 
 #endif //ZIA_MODULES_H
