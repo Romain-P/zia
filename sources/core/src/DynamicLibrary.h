@@ -55,6 +55,14 @@ namespace dl {
         return std::string(dlerror());
 #endif
     }
+
+    inline char const *extension() {
+#ifdef _WIN32
+        return ".dll";
+#else
+        return ".so";
+#endif
+    }
 }
 
 #endif //ZIA_DYNAMICLIBRARY_H

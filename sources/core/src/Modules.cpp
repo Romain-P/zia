@@ -20,7 +20,7 @@ void Modules::load(std::string const &path, ssizet priority) {
     }
 
     void *library = nullptr;
-    std::string fullPath = server.config().modulesPath() + file_util::separator() + path;
+    std::string fullPath = server.config().modulesPath() + file_util::separator() + path + dl::extension();
 
     library = dl::open(fullPath.c_str());
 

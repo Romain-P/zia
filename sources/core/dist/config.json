@@ -7,9 +7,9 @@
     "networkReadBuffer": 8096,
     "modulesPath": "modules",
     "modules": {
-        "zia-log.so": 1,
-        "zia-secure_network.so": 2,
-        "zia-unsecure_network.so": 3
+        "zia-log": 1,
+        "zia-secure_network": 2,
+        "zia-unsecure_network": 3
     },
     "modulesProperties": {
         "tls_certificate_path": "tls/cert.crt",

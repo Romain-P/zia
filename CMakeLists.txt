@@ -25,3 +25,15 @@ install(TARGETS zia log secure_network unsecure_network
         LIBRARY DESTINATION ${CMAKE_SOURCE_DIR}/generated/modules)
 
 set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
+
+if (UNIX)
+    message("Please follow the instructions to install php-cgi")
+    execute_process(
+            COMMAND bash "-c" "bash ${CMAKE_SOURCE_DIR}/sources/modules/php/dist/php-cgi/linux/install.sh"
+            RESULT_VARIABLE
+            RET
+    )
+    if(RET EQUAL "1")
+        message(FATAL_ERROR "Error while installing php-cgi, please install it manually")
+    endif()
+endif(UNIX)
