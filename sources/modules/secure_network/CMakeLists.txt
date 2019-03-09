@@ -10,6 +10,6 @@ find_package(OpenSSL REQUIRED)
 
 target_link_libraries(secure_network
         CONAN_PKG::OpenSSL
-        CONAN_PKG::boost_asio
+        CONAN_PKG::boost
         ZiaModuleAPISpec
 )

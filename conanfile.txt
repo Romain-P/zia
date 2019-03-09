@@ -2,11 +2,10 @@
 cmake
 
 [requires]
-boost_asio/1.66.0@bincrafters/stable
+boost/1.69.0@conan/stable
 jsonformoderncpp/3.5.0@vthiery/stable
 OpenSSL/1.1.1b@conan/stable
 
 [options]
-boost:shared=True
 
 [imports]

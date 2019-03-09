@@ -12,4 +12,4 @@ set(FILES
         src/Http.h src/DynamicLibrary.h)
 
 add_executable(zia ${FILES})
-target_link_libraries(zia ${CMAKE_DL_LIBS} CONAN_PKG::boost_asio CONAN_PKG::jsonformoderncpp ZiaModuleAPISpec)
+target_link_libraries(zia ${CMAKE_DL_LIBS} CONAN_PKG::boost CONAN_PKG::jsonformoderncpp ZiaModuleAPISpec)

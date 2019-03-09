@@ -1,0 +1,21 @@
+{
+    "serverName": "MyHttpServer",
+    "serverVersion": "1.1",
+    "address": "127.0.0.1",
+    "port": 8080,
+    "poolSize": 10,
+    "networkReadBuffer": 8096,
+    "modulesPath": "modules",
+    "modules": {
+        "zia-log": 10,
+        "zia-secure_network": 20,
+        "zia-php": 30,
+        "zia-unsecure_network": 40
+    },
+    "modulesProperties": {
+        "tls_certificate_path": "tls/cert.crt",
+        "tls_private_key_path": "tls/private.key",
+        "php_cgi_path": "modules/php/php-cgi.exe",
+        "php_www_path": "www"
+    }
+}

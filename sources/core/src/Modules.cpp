@@ -160,7 +160,7 @@ HookResultType Modules::executePipeline(SafeModuleContext const &ctx, std::funct
         if (result != HookResult::Declined)
             return result;
     }
-    return http::code::resource_not_found;
+    return HookResult::Declined;
 }
 
 Modules::SafeModuleContext Modules::newModuleContext() {

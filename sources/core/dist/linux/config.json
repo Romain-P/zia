@@ -7,12 +7,15 @@
     "networkReadBuffer": 8096,
     "modulesPath": "modules",
     "modules": {
-        "zia-log": 1,
-        "zia-secure_network": 2,
-        "zia-unsecure_network": 3
+        "zia-log": 10,
+        "zia-secure_network": 20,
+        "zia-php": 30,
+        "zia-unsecure_network": 40
     },
     "modulesProperties": {
         "tls_certificate_path": "tls/cert.crt",
-        "tls_private_key_path": "tls/private.key"
+        "tls_private_key_path": "tls/private.key",
+        "php_cgi_path": "/usr/bin/php-cgi",
+        "php_www_path": "www"
     }
 }

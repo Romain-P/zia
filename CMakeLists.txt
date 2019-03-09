@@ -17,16 +17,17 @@ set(CMAKE_BUILD_TYPE Release)
 
 add_subdirectory(sources)
 
-install(FILES sources/core/dist/config.json DESTINATION ${CMAKE_SOURCE_DIR}/generated)
-install(FILES sources/modules/secure_network/dist/cert.crt DESTINATION ${CMAKE_SOURCE_DIR}/generated/tls)
-install(FILES sources/modules/secure_network/dist/private.key DESTINATION ${CMAKE_SOURCE_DIR}/generated/tls)
-install(TARGETS zia log secure_network unsecure_network
+install(FILES ${CMAKE_SOURCE_DIR}/sources/modules/secure_network/dist/cert.crt DESTINATION ${CMAKE_SOURCE_DIR}/generated/tls)
+install(FILES ${CMAKE_SOURCE_DIR}/sources/modules/secure_network/dist/private.key DESTINATION ${CMAKE_SOURCE_DIR}/generated/tls)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/sources/modules/php/dist/sample/ DESTINATION ${CMAKE_SOURCE_DIR}/generated/www)
+install(TARGETS zia log secure_network unsecure_network php
         RUNTIME DESTINATION ${CMAKE_SOURCE_DIR}/generated
         LIBRARY DESTINATION ${CMAKE_SOURCE_DIR}/generated/modules)
 
 set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
 
 if (UNIX)
+    install(FILES ${CMAKE_SOURCE_DIR}/sources/core/dist/linux/config.json DESTINATION ${CMAKE_SOURCE_DIR}/generated)
     message("Please follow the instructions to install php-cgi")
     execute_process(
             COMMAND bash "-c" "bash ${CMAKE_SOURCE_DIR}/sources/modules/php/dist/php-cgi/linux/install.sh"
@@ -36,4 +37,7 @@ if (UNIX)
     if(RET EQUAL "1")
         message(FATAL_ERROR "Error while installing php-cgi, please install it manually")
     endif()
+else()
+    install(FILES ${CMAKE_SOURCE_DIR}/sources/core/dist/windows/config.json DESTINATION ${CMAKE_SOURCE_DIR}/generated)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/sources/modules/php/dist/php-cgi/windows/ DESTINATION ${CMAKE_SOURCE_DIR}/generated/modules/php)
 endif(UNIX)
