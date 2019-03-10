@@ -8,5 +8,6 @@ echo "added source: bincrafters"
 :found
 echo "installing into \build ..."
 mkdir ..\build
-cd ..\build && conan install --build=missing -s compiler="Visual Studio" -s compiler.version=15 -s "arch=x86_64" -s "arch_build=x86_64" .. && cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=Release && msbuild zia.sln /p:Configuration=Release
+cd ..\build && conan install --build=missing -s compiler="Visual Studio" -s compiler.version=15 -s "arch=x86_64" -s "arch_build=x86_64" .. && cmake .. -G "Visual Studio 15 2017 Win64" -DCMAKE_BUILD_TYPE=Release
+echo "Visual Studio Solution File created unto \build"
 pause
