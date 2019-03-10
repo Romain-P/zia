@@ -22,8 +22,7 @@ public:
     HookResultType
     onConnectionWrite(const Connection &connection, tcp::socket &socket, const std::vector<char> &buffer, size_t &size) override {
         boost::system::error_code error;
-        socket.write_some(boost::asio::buffer(buffer), error);
-
+        size = boost::asio::write(socket, boost::asio::buffer(buffer), boost::asio::transfer_all(), error);
         return HookResult::Ok;
     }
 };

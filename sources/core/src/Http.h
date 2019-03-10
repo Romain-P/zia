@@ -79,15 +79,18 @@ namespace http {
                 data += std::to_string(response.status_code) + " ";
                 data += response.status_message + "\n";
 
-                for (auto &it: response.headers)
-                    data += (it.first + ": " + it.second + "\n");
+                bool first = true;
+                for (auto &it: response.headers) {
+                    if (!first) data += "\n";
+                    data += (it.first + ": " + it.second);
+                    if (first) first = false;
+                }
 
                 data += headers_end_delimiter;
+                buffer.insert(buffer.end(), data.begin(), data.end());
 
                 if (!response.body.empty())
-                    data.insert(data.end(), response.body.begin(), response.body.end());
-
-                buffer.insert(buffer.end(), data.begin(), data.end());
+                    buffer.insert(buffer.end(), response.body.begin(), response.body.end());
             }
         }
 

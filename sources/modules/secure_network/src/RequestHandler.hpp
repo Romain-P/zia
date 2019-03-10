@@ -39,7 +39,7 @@ public:
     onConnectionWrite(const Connection &connection, tcp::socket &socket, const std::vector<char> &buffer,
                       size_t &size) override {
         boost::system::error_code error;
-        _socket->write_some(boost::asio::buffer(buffer), error);
+        size = boost::asio::write(*_socket, boost::asio::buffer(buffer), boost::asio::transfer_all(), error);
         return HookResult::Ok;
     }
 
