@@ -183,7 +183,7 @@ private:
             return true;
         }
 
-        std::ifstream ifs(file);
+        std::ifstream ifs(file, std::ios::binary);
         response.body.insert(response.body.end(), (std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
         response.headers["Content-Length"] = std::to_string(response.body.size());
         response.status_code = 200;
