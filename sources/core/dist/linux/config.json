@@ -4,7 +4,7 @@
     "address": "127.0.0.1",
     "port": 8080,
     "poolSize": 10,
-    "networkReadBuffer": 8096,
+    "networkReadBuffer": 4096,
     "modulesPath": "modules",
     "modules": {
         "zia-log": 10,

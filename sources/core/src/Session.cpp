@@ -7,6 +7,8 @@
 #include "Server.h"
 #include "Http.h"
 
+#define HEADERS_LIMIT   16000
+
 void Session::start() {
     _context = server.modules().newModuleContext();
 
@@ -42,10 +44,8 @@ void Session::connectionRead() {
     });
 
     if (result != http::code::internal_error) {
-        if (!readSize)
-            throwError("closed by peer");
-        else
-            _readBuffer.insert(_readBuffer.end(), buffer.begin(), buffer.begin() + readSize);
+        assertTrue(readSize > 0, "closed by peer");
+        _readBuffer.insert(_readBuffer.end(), buffer.begin(), buffer.begin() + readSize);
     }
 
     assertTrue(result != http::code::internal_error, "no suitable module found for read sockets of incoming connections");
@@ -57,6 +57,7 @@ void Session::readRequest() {
     do {
         connectionRead();
         offsets = http::request::parser::requestOffsets(_readBuffer);
+        assertTrue(_readBuffer.size() < HEADERS_LIMIT, "invalid header");
     } while (offsets == http::request::parser::offsets_not_found);
 
     assertTrue(http::request::parser::parseRequest(_readBuffer, sizet(offsets.first), _request), "invalid request received");

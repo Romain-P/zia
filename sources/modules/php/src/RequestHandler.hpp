@@ -8,6 +8,8 @@
 #include <boost/process.hpp>
 #include <boost/filesystem.hpp>
 #include <regex>
+#include <fstream>
+#include <iostream>
 
 using namespace Zia::API;
 using namespace boost::process;
@@ -18,6 +20,9 @@ public:
             : RequestHandler(), _phpBinaryPath(phpBinaryPath), _phpWwwPath(phpWwwPath) {}
 
     HookResultType onRequest(const Connection &connection, const Request &request, Response &response) override {
+        if (serveStatic(request, response))
+            return HookResult::Ok;
+
         ipstream output_stream;
         opstream input_stream;
         child proc(_phpBinaryPath, std_out > output_stream, std_in < input_stream, buildCgiEnvironment(request));
@@ -54,6 +59,7 @@ public:
 
 private:
     static inline const auto ext_html_result = std::vector<std::string>{".html", ".htm", ".php", ".phtml", ".phtm"};
+    static inline const auto ext_php = std::vector<std::string>{".php", ".phtml", ".phtm"};
     static inline char const *beginPath =
 #ifdef _WIN32
             ".\\";
@@ -77,8 +83,6 @@ private:
         it = request.headers.find("Content-Type");
         if (it != request.headers.end())
             cgi_env["CONTENT_TYPE"] = it->second;
-
-        setupUri(request.uri);
 
         auto queryIndex = _requestedUri.find('?');
 
@@ -157,6 +161,41 @@ private:
                 return;
             }
         }
+    }
+
+    bool serveStatic(Request const &request, Response &response) {
+        setupUri(request.uri);
+
+        if (_requestedUri.find('?') != std::string::npos)
+            return false;
+
+        auto ext = boost::filesystem::extension(_requestedUri);
+        for (auto &it: ext_php) {
+            if (it == ext)
+                return false;
+        }
+
+        std::string file = beginPath + _phpWwwPath + _requestedUri;
+        if (!boost::filesystem::exists(file)) {
+            response.status_code = 404;
+            response.status_message = "Not Found";
+            response.protocol = "HTTP/1.1";
+            return true;
+        }
+
+        std::ifstream ifs(file);
+        response.body.insert(response.body.end(), (std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+        response.headers["Content-Length"] = std::to_string(response.body.size());
+        response.status_code = 200;
+        response.status_message = "OK";
+
+        for (auto &it: ext_html_result) {
+            if (it == ext) {
+                response.headers["Content-Type"] = "text/html";
+                return true;
+            }
+        }
+        return true;
     }
 
 private:
